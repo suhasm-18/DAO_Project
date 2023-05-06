@@ -75,3 +75,25 @@ require(proposal.isExecuted==false,"It is already executed");
 isVoted[msg.sender][proposalId]=true;
 proposal.votes+=numOfshares[msg.sender];//proposal.votes=proposal.votes+numOfshares[msg.sender]
 }
+function executeProposal(uint proposalId) public onlyManager(){
+Proposal storage proposal=proposals[proposalId];
+require(((proposal.votes*100)/totalShares)>=quorum,"Majority does not support");
+proposal.isExecuted=true;
+availableFunds-=proposal.amount;
+_transfer(proposal.amount,proposal.receipient);
+}
+
+function _transfer(uint amount,address payable receipient) private{
+receipient.transfer(amount);
+}
+function ProposalList() public view returns(Proposal[] memory){
+Proposal[] memory arr = new Proposal[](nextProposalId);//empty array of length=nextProposalId-1
+for(uint i=0;i<nextProposalId;i++){
+arr[i]=proposals[i];
+}
+return arr;
+}
+function InvestorList() public view returns(address[] memory){
+  return investorsList;
+}
+}
