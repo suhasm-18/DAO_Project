@@ -49,3 +49,29 @@ constructor (uint _participationTimeEnd , uint _voteTime , uint _quorum){
     availableFunds+=msg.value;
     investorsList.push(msg.sender);
 }
+function reedemShare(uint amount) public onlyInvestor(){
+require(numOfshares[msg.sender]>=amount,"You don't have enough shares");
+require(availableFunds>=amount,"Not enough funds");
+numOfshares[msg.sender]-=amount;
+if(numOfshares[msg.sender]==0){
+isInvestor[msg.sender]=false;
+}
+availableFunds-=amount;
+payable(msg.sender).transfer(amount);//transferring of ether
+}
+
+function createProposal(string calldata description,uint amount,address payable receipient) public onlyManager{
+require(availableFunds>=amount,"Not enough funds");
+proposals[nextProposalId]=Proposal(nextProposalId,description,
+amount,receipient,0,block.timestamp+voteTime,false);
+nextProposalId++;
+}
+
+function voteProposal(uint proposalId) public onlyInvestor(){
+Proposal storage proposal = proposals[proposalId];
+require(isVoted[msg.sender][proposalId]==false,"You have already voted for this proposal");
+require(proposal.end>=block.timestamp,"Voting Time Ended");
+require(proposal.isExecuted==false,"It is already executed");
+isVoted[msg.sender][proposalId]=true;
+proposal.votes+=numOfshares[msg.sender];//proposal.votes=proposal.votes+numOfshares[msg.sender]
+}
